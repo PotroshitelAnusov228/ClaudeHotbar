@@ -34,3 +34,4 @@ jobs:
         with:
           name: squarehotbar-mod
           path: ${{ env.PROJECT_DIR }}/build/libs/*.jar
+          
