@@ -73,7 +73,6 @@ public abstract class InGameHudMixin extends DrawableHelper {
 
         RenderSystem.disableRescaleNormal();
         RenderSystem.disableBlend();
-        RenderSystem.popMatr
-            ix();
+        RenderSystem.popMatrix();
     }
 }
