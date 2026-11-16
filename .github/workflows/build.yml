@@ -5,7 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip squarehotbar-src.zip
+      - name: Find project
+        run: |
+          for z in *.zip; do [ -f "$z" ] && unzip -o "$z"; done || true
+          DIR=$(dirname "$(find . -name build.gradle -not -path './.git/*' | head -n1)")
+          echo "Project dir: $DIR"
+          echo "PROJECT_DIR=$DIR" >> $GITHUB_ENV
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -14,8 +19,8 @@ jobs:
         with:
           gradle-version: 6.8.3
       - run: gradle build
-        working-directory: squarehotbar
+        working-directory: ${{ env.PROJECT_DIR }}
       - uses: actions/upload-artifact@v4
         with:
           name: squarehotbar-mod
-          path: squarehotbar/build/libs/*.jar
+          path: ${{ env.PROJECT_DIR }}/build/libs/*.jar
