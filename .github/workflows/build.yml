@@ -11,6 +11,14 @@ jobs:
           DIR=$(dirname "$(find . -name build.gradle -not -path './.git/*' | head -n1)")
           echo "Project dir: $DIR"
           echo "PROJECT_DIR=$DIR" >> $GITHUB_ENV
+      - name: Apply patches
+        run: |
+          ls -la patch
+          test -f patch/InGameHudMixin.java
+          test -f patch/KeyboardMixin.java
+          cp -f patch/*.java "$PROJECT_DIR/src/main/java/com/example/squarehotbar/mixin/"
+          sed -i 's/^mod_version=.*/mod_version=1.1.0/' "$PROJECT_DIR/gradle.properties"
+          grep -n "TAIL" "$PROJECT_DIR/src/main/java/com/example/squarehotbar/mixin/InGameHudMixin.java"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -26,5 +34,3 @@ jobs:
         with:
           name: squarehotbar-mod
           path: ${{ env.PROJECT_DIR }}/build/libs/*.jar
-
-          
