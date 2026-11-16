@@ -1,0 +1,21 @@
+name: build
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip squarehotbar-src.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 6.8.3
+      - run: gradle build
+        working-directory: squarehotbar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: squarehotbar-mod
+          path: squarehotbar/build/libs/*.jar
