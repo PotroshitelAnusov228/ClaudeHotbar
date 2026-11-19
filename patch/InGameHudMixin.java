@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -19,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameHud.class)
 public abstract class InGameHudMixin extends DrawableHelper {
 
-    private static final int CELL = 22; // размер ванильной ячейки с рамкой
+    private static final int CELL = 22;
     private static final Identifier WIDGETS = new Identifier("textures/gui/widgets.png");
 
     @Shadow @Final private MinecraftClient client;
@@ -30,6 +31,10 @@ public abstract class InGameHudMixin extends DrawableHelper {
     @Inject(method = "renderHotbar", at = @At("TAIL"))
     private void squarehotbar$render(float tickDelta, MatrixStack matrices, CallbackInfo ci) {
         if (!(this.client.getCameraEntity() instanceof PlayerEntity)) {
+            return;
+        }
+        // в окнах с ячейками хотбар рисует HandledScreenMixin
+        if (this.client.currentScreen instanceof HandledScreen) {
             return;
         }
         PlayerEntity player = (PlayerEntity) this.client.getCameraEntity();
@@ -50,18 +55,15 @@ public abstract class InGameHudMixin extends DrawableHelper {
         this.client.getTextureManager().bindTexture(WIDGETS);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-        // 1) ванильные полупрозрачные слоты
         for (int i = 0; i < 9; i++) {
             this.drawTexture(matrices, (i % 3) * CELL, (i / 3) * CELL, 0, 0, 22, 22);
         }
 
-        // 2) обводка выбранного слота
         int selected = player.inventory.selectedSlot;
         if (selected >= 0 && selected < 9) {
             this.drawTexture(matrices, (selected % 3) * CELL - 1, (selected / 3) * CELL - 1, 0, 22, 24, 24);
         }
 
-        // 3) предметы, количество, прочность
         RenderSystem.enableRescaleNormal();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -74,5 +76,8 @@ public abstract class InGameHudMixin extends DrawableHelper {
         RenderSystem.disableRescaleNormal();
         RenderSystem.disableBlend();
         RenderSystem.popMatrix();
+
+        // сбрасываем глубину, чтобы всё, что рисуется дальше (текст F3 и т.д.), было поверх хотбара
+        RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
     }
 }
